@@ -5,28 +5,31 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 
 program
-  .version('0.0.1', '-v, --version')
+  .version('0.0.1', '-v, --version');
+
+program
   .command('node:remove-node_modules <dir>')
-  .option(
-    '-p, --pickup',
-    'Interactively pickup which directories to remove from a displayed list'
-  )
+  .description('Recursively remove all node_modules directories within provided <dir>')
+  // .option(
+  //   '-p, --pickup',
+  //   'Interactively pickup which directories to remove from a displayed list'
+  // )
   .action((dir, cmd) => {
     const searchDir = 'node_modules';
     const foundDirs: string[] = _findDirectoriesRecursivelyByName(
       searchDir,
       dir
     );
-    console.log('found: ', foundDirs);
+
     if (foundDirs.length === 0) {
       console.log(
-        `No directory named ${searchDir} has been founded in ${dir} directory.`
+        `No directory named ${searchDir} has been founded in ${dir}.`
       );
       return;
     }
 
     console.log(
-      `List of directories named ${searchDir} has been founded in ${dir} directory:`
+      `List of directories named ${searchDir} has been founded in ${dir}:`
     );
     foundDirs.forEach((dir, i) => {
       console.log(`${i + 1}. ${dir}`);
@@ -37,9 +40,15 @@ program
     });
   });
 
+program.parse(process.argv);
+
+if (!program.args || program.args.length === 0) {
+  program.help();
+}
+
 function _findDirectoriesRecursivelyByName(searchDir: string, inDir: string) {
   const result: string[] = [];
-  const filesAndFolders = fs.readdirSync(inDir, { withFileTypes: true });
+  const filesAndFolders = fs.readdirSync(inDir, {withFileTypes: true});
   filesAndFolders.forEach(item => {
     if (item.isDirectory() && item.name[0] !== '.') {
       const subDirPath = path.join(inDir, item.name);
@@ -56,5 +65,3 @@ function _findDirectoriesRecursivelyByName(searchDir: string, inDir: string) {
   });
   return result;
 }
-
-program.parse(process.argv);

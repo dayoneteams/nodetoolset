@@ -2,14 +2,17 @@
   "name": "nodetoolkit",
   "version": "0.0.1",
   "description": "Setup of utility commands. Built with love for nodejs developers",
-  "bin": "src/remove-nodemodules.ts",
-  "main": "build/src/index.js",
+  "bin": {
+    "ntk": "./build/index.js"
+  },
+  "main": "./build/index.js",
   "scripts": {
-    "start:dev": "ts-node src/index.ts --help",
+    "dev": "ts-node src/index.ts",
+    "start": "ntk --help",
     "lint": "gts check",
     "lint:fix": "gts fix",
     "lint:clean": "gts clean",
-    "build": "tsc -p src"
+    "build": "tsc -p ."
   },
   "dependencies": {
     "commander": "^2.20.0",
