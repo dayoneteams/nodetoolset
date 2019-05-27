@@ -3,18 +3,21 @@
 import * as program from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
+import * as inquirer from 'inquirer';
+import { Answers } from 'inquirer';
 
-program
-  .version('0.0.1', '-v, --version');
+program.version('0.0.1', '-v, --version');
 
 program
   .command('node:remove-node_modules <dir>')
-  .description('Recursively remove all node_modules directories within provided <dir>')
+  .description(
+    'Recursively remove all node_modules directories within provided <dir>'
+  )
   // .option(
   //   '-p, --pickup',
   //   'Interactively pickup which directories to remove from a displayed list'
   // )
-  .action((dir, cmd) => {
+  .action(async (dir, cmd) => {
     const searchDir = 'node_modules';
     const foundDirs: string[] = _findDirectoriesRecursivelyByName(
       searchDir,
@@ -34,10 +37,30 @@ program
     foundDirs.forEach((dir, i) => {
       console.log(`${i + 1}. ${dir}`);
     });
+
+    const answers: Answers = await inquirer.prompt([
+      {
+        type: 'confirm',
+        message: 'Are you sure you want to remove all directories above?',
+        name: 'confirmation',
+        default: true,
+      },
+    ]);
+
+    if (!answers.confirmation) {
+      console.log('Directories have been kept.');
+      return;
+    }
+
     foundDirs.forEach(dirPath => {
       fs.removeSync(dirPath);
-      console.log(`Removed ${dirPath}`);
     });
+
+    console.log(
+      `${foundDirs.length} ${
+        foundDirs.length === 1 ? 'directory' : 'directories'
+      } have been removed successfully.`
+    );
   });
 
 program.parse(process.argv);
@@ -48,7 +71,7 @@ if (!program.args || program.args.length === 0) {
 
 function _findDirectoriesRecursivelyByName(searchDir: string, inDir: string) {
   const result: string[] = [];
-  const filesAndFolders = fs.readdirSync(inDir, {withFileTypes: true});
+  const filesAndFolders = fs.readdirSync(inDir, { withFileTypes: true });
   filesAndFolders.forEach(item => {
     if (item.isDirectory() && item.name[0] !== '.') {
       const subDirPath = path.join(inDir, item.name);

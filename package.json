@@ -7,7 +7,7 @@
   },
   "main": "./build/index.js",
   "scripts": {
-    "dev": "ts-node src/index.ts",
+    "dev": "ts-node src/index.ts node:remove-node_modules .",
     "start": "ntk --help",
     "lint": "gts check",
     "lint:fix": "gts fix",
@@ -16,10 +16,12 @@
   },
   "dependencies": {
     "commander": "^2.20.0",
-    "fs-extra": "^8.0.1"
+    "fs-extra": "^8.0.1",
+    "inquirer": "^6.3.1"
   },
   "devDependencies": {
     "@types/fs-extra": "^7.0.0",
+    "@types/inquirer": "^6.0.3",
     "@types/node": "^11.13.8",
     "gts": "^1.0.0",
     "ts-node": "^8.1.0",
