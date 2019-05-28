@@ -1,13 +1,13 @@
 {
-  "name": "nodetoolkit",
+  "name": "nodelife",
   "version": "0.0.1",
   "description": "Setup of utility commands for Node.js developers. Built with love from DayOne Teams!",
   "bin": {
-    "ntk": "./build/index.js"
+    "nodelife": "./build/index.js"
   },
   "scripts": {
     "dev": "ts-node src/index.ts node:remove-node_modules .",
-    "start": "ntk --help",
+    "start": "nodelife --help",
     "lint": "gts check",
     "lint:fix": "gts fix",
     "lint:clean": "gts clean",
@@ -33,7 +33,7 @@
   ],
   "repository": {
     "type": "git",
-    "url": "https://github.com/dayoneteams/nodetoolkit.git"
+    "url": "https://github.com/dayoneteams/nodelife.git"
   },
   "license": "MIT",
   "keywords": [
