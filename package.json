@@ -7,7 +7,8 @@
   },
   "scripts": {
     "dev": "ts-node src/index.ts --help",
-    "start": "nodetoolset --help",
+    "prestart": "npm run build",
+    "start": "node build/index.js --help",
     "lint": "gts check",
     "lint:fix": "gts fix",
     "lint:clean": "gts clean",
