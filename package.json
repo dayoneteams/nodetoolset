@@ -1,7 +1,7 @@
 {
   "name": "nodetoolset",
   "version": "0.0.2",
-  "description": "Setup of utility commands for Node.js developers. Built with love from DayOne Teams!",
+  "description": "Set of utility commands for Node.js developers. Built with love from DayOne Teams!",
   "bin": {
     "nts": "./build/index.js"
   },
@@ -29,13 +29,14 @@
   "main": "./build/index.js",
   "types": "./build/src/index.d.ts",
   "files": [
-    "./build"
+    "build"
   ],
   "repository": {
     "type": "git",
     "url": "https://github.com/dayoneteams/nodetoolset.git"
   },
   "license": "MIT",
+  "author": "DayOne Teams",
   "keywords": [
     "utility",
     "nodejs"
