@@ -6,9 +6,9 @@
     "nts": "./build/index.js"
   },
   "scripts": {
-    "dev": "ts-node src/index.ts --help",
+    "dev": "ts-node src/index.ts",
     "prestart": "npm run build",
-    "start": "node build/index.js --help",
+    "start": "node build/index.js",
     "lint": "gts check",
     "lint:fix": "gts fix",
     "lint:clean": "gts clean",
@@ -28,7 +28,7 @@
     "typescript": "~3.4.0"
   },
   "main": "./build/index.js",
-  "types": "./build/src/index.d.ts",
+  "types": "./build/index.d.ts",
   "files": [
     "build"
   ],
