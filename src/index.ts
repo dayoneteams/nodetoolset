@@ -1,23 +1,26 @@
 #!/usr/bin/env node
 
-import * as program from 'commander';
+import { createCommand } from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as inquirer from 'inquirer';
 import { Answers } from 'inquirer';
+import { ReactNativeHelper } from './ReactNativeHelper';
+
+const program = createCommand();
 
 program.version('0.0.1', '-v, --version');
 
 program
-  .command('node:remove-node_modules <dir>')
+  .command('node:remove-node_modules <dir-path>')
   .description(
-    'Recursively remove all node_modules directories within provided <dir>'
+    'Recursively remove all node_modules directories within provided <dir-path>.'
   )
   // .option(
   //   '-p, --pickup',
   //   'Interactively pickup which directories to remove from a displayed list'
   // )
-  .action(async (dir, cmd) => {
+  .action(async dir => {
     const searchDir = 'node_modules';
     const foundDirs: string[] = _findDirectoriesRecursivelyByName(
       searchDir,
@@ -61,6 +64,30 @@ program
         foundDirs.length === 1 ? 'directory' : 'directories'
       } have been removed successfully.`
     );
+  });
+
+program
+  .command('rn:rename-app <new-app-name>')
+  .description('Rename React Native app name.')
+  .option('-android, --android', 'Only replace app name for Android')
+  .option('-ios, --ios', 'Only replace app name for iOS')
+  .action(async (newName, { android, ios }) => {
+    new ReactNativeHelper().renameReactNativeProject(
+      '/Users/haotang/Projects/prd-emenu/code/prd-emenu-mobile',
+      newName,
+      {
+        ios: !android || !!ios,
+        android: !ios || !!android,
+      }
+    );
+
+    // Change iOS app name.
+    // const iosFiles = findiOSFilesToChange();
+    // changeAppNameInFile(iosFiles, matchingPattern);
+    //
+    // // Change Android app name.
+    // const androidFiles = findAndroidFilesToChange();
+    // changeAppNameInFile(androidFiles, matchingPattern);
   });
 
 program.parse(process.argv);
