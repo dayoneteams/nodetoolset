@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import { createCommand } from 'commander';
+import {createCommand} from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as inquirer from 'inquirer';
-import { Answers } from 'inquirer';
-import { ReactNativeHelper } from './ReactNativeHelper';
+import {Answers} from 'inquirer';
+import {ReactNativeHelper} from './ReactNativeHelper';
 
 const program = createCommand();
 
@@ -69,11 +69,12 @@ program
 program
   .command('rn:rename-app <new-app-name>')
   .description('Rename React Native app name.')
+  .option('-dir, --dir [dirPath]')
   .option('-android, --android', 'Only replace app name for Android')
   .option('-ios, --ios', 'Only replace app name for iOS')
-  .action(async (newName, { android, ios }) => {
-    new ReactNativeHelper().renameReactNativeProject(
-      '/Users/haotang/Projects/prd-emenu/code/prd-emenu-mobile',
+  .action(async (newName, { dir = process.cwd(), android, ios }) => {
+    await new ReactNativeHelper().renameReactNativeProject(
+      dir,
       newName,
       {
         ios: !android || !!ios,
