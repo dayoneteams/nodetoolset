@@ -73,7 +73,8 @@ program
   .option('-android, --android', 'Only replace app name for Android')
   .option('-ios, --ios', 'Only replace app name for iOS')
   .action(async (newName, { dir = process.cwd(), android, ios }) => {
-    await new ReactNativeHelper().renameReactNativeProject(
+    const rnHelper = new ReactNativeHelper();
+    await rnHelper.renameReactNativeProject(
       dir,
       newName,
       {
@@ -81,14 +82,6 @@ program
         android: !ios || !!android,
       }
     );
-
-    // Change iOS app name.
-    // const iosFiles = findiOSFilesToChange();
-    // changeAppNameInFile(iosFiles, matchingPattern);
-    //
-    // // Change Android app name.
-    // const androidFiles = findAndroidFilesToChange();
-    // changeAppNameInFile(androidFiles, matchingPattern);
   });
 
 program.parse(process.argv);

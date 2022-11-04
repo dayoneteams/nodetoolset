@@ -11,7 +11,7 @@ export class ReactNativeProject {
   appDisplayName: string;
   appKey: string;
 
-  static async build(rootDir: string) {
+  static async build(rootDir: string): Promise<ReactNativeProject> {
     const prj = new ReactNativeProject(rootDir);
     await prj.analyze();
     return prj;
@@ -97,8 +97,8 @@ export class ReactNativeProject {
 
     return [
       ...updateContentBatch,
-      // ...firstMoveBatch,
-      // ...secondMoveBatch,
+      ...firstMoveBatch,
+      ...secondMoveBatch,
     ];
   }
 
@@ -107,11 +107,10 @@ export class ReactNativeProject {
   }
 
   private async analyze() {
-    await this.detectAppDisplayName();
-    this.detectAppKey();
+    await this.detectAppName();
   }
 
-  private async detectAppDisplayName() {
+  private async detectAppName() {
     const appDotJsonFilePath = path.join(this.rootDir, './app.json');
     const appDotJsonFileExists = fs.existsSync(appDotJsonFilePath);
     if (!appDotJsonFileExists) {
@@ -119,14 +118,10 @@ export class ReactNativeProject {
       return;
     }
 
-    const appDisplayName = await valueFromJsonFile('name', appDotJsonFilePath);
-    if (!appDisplayName) {
+    this.appDisplayName = await valueFromJsonFile('displayName', appDotJsonFilePath);
+    this.appKey = await valueFromJsonFile('name', appDotJsonFilePath);
+    if (!this.appKey) {
       console.error('App name not found in app.json file. Please ensure "name" key exists in your app.json file.');
     }
-    this.appDisplayName = appDisplayName;
-  }
-
-  private detectAppKey() {
-    this.appKey = withoutSpaces(this.appDisplayName);
   }
 }
