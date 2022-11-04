@@ -24,18 +24,19 @@ export class ReactNativeProject {
   }
 
   async toNewName(newDisplayName: string, options: { ios: boolean, android: boolean }): Promise<FileChange[]> {
+    const newAppKey = withoutSpaces(newDisplayName);
     const changes = [];
     if (options.ios) {
-      changes.push(...(await this.toNewIosName(newDisplayName)));
+      changes.push(...(await this.toNewIosName(newAppKey, newDisplayName)));
     }
     if (options.android) {
-      changes.push(...await this.toNewAndroidName(newDisplayName));
+      changes.push(...await this.toNewAndroidName(newAppKey, newDisplayName));
     }
 
     return changes;
   }
 
-  private async toNewIosName(newAppKey: string): Promise<FileChange[]> {
+  private async toNewIosName(newAppKey: string, newDisplayName: string): Promise<FileChange[]> {
     // Update all files' content.
     const filesToUpdateContent = [
       'index.ios.js',
@@ -48,16 +49,26 @@ export class ReactNativeProject {
       'ios/build/info.plist',
       'ios/Podfile',
     ];
-    const updateContentBatch = filesToUpdateContent
-      .filter(filePath => fs.existsSync(path.join(this.rootDir, filePath)))
-      .map(filePath => {
-        return {
-          type: "updateContent",
-          target: filePath,
-          match: this.appKey,
-          replaceWith: newAppKey,
-        } as UpdateFileContent;
-      });
+    const updateContentBatch: UpdateFileContent[] = [
+      {
+        type: "updateContent",
+        target: filesToUpdateContent,
+        match: this.appKey,
+        replaceWith: newAppKey,
+      },
+      {
+        type: "updateContent",
+        match: `text="${this.appDisplayName}"`,
+        replaceWith: `text="${newDisplayName}"`,
+        target: `ios/${this.appKey}/Base.lproj/LaunchScreen.xib`,
+      },
+      {
+        type: "updateContent",
+        match: this.appDisplayName,
+        replaceWith: newDisplayName,
+        target: `ios/${this.appKey}/Info.plist`,
+      },
+    ];
 
     // Move root folders and files first.
     const dirsAndFilesToMoveFirst = [
@@ -70,7 +81,6 @@ export class ReactNativeProject {
       `ios/${this.appKey}-Bridging-Header.h`,
     ];
     const firstMoveBatch = dirsAndFilesToMoveFirst
-      .filter(filePath => fs.existsSync(path.join(this.rootDir, filePath)))
       .map(filePath => ({
         type: 'move',
         target: filePath,
@@ -88,7 +98,6 @@ export class ReactNativeProject {
       `ios/${this.appKey}/${this.appKey}.entitlements`,
     ];
     const secondMoveBatch = dirsAndFilesToMoveLast
-      .filter(filePath => fs.existsSync(path.join(this.rootDir, filePath)))
       .map(filePath => {
         const target = replaceFirstMatch(filePath, this.appKey, newAppKey);
         const dest = replaceFirstMatch(target, this.appKey, newAppKey);
@@ -102,7 +111,7 @@ export class ReactNativeProject {
     ];
   }
 
-  private async toNewAndroidName(newDisplayName: string): Promise<FileChange[]> {
+  private async toNewAndroidName(newAppKey: string, newDisplayName: string): Promise<FileChange[]> {
     return [];
   }
 
