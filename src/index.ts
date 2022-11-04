@@ -69,9 +69,9 @@ program
 program
   .command('rn:rename-app <new-app-name>')
   .description('Rename React Native app name.')
-  .option('-dir, --dir [dirPath]')
-  .option('-android, --android', 'Only replace app name for Android')
-  .option('-ios, --ios', 'Only replace app name for iOS')
+  .option('-dir, --dir [dirPath]', 'Path to React Native project root folder.')
+  .option('-android, --android', 'Only change Android files.')
+  .option('-ios, --ios', 'Only change iOS files.')
   .action(async (newName, { dir = process.cwd(), android, ios }) => {
     const rnHelper = new ReactNativeHelper();
     await rnHelper.renameReactNativeProject(dir, newName, {
