@@ -1,4 +1,4 @@
-import {FileChange} from "./FileChange";
+import { FileChange } from './FileChange';
 
 export interface UpdateFileContent extends FileChange {
   type: 'updateContent';

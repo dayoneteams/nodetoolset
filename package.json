@@ -6,7 +6,7 @@
     "nts": "./build/index.js"
   },
   "scripts": {
-    "dev": "ts-node src/index.ts rn:rename-app TopMenu --android --ios",
+    "dev": "ts-node src/index.ts",
     "prestart": "npm run build",
     "start": "node build/index.js",
     "lint": "gts check",

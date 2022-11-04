@@ -1,11 +1,11 @@
 #!/usr/bin/env node
 
-import {createCommand} from 'commander';
+import { createCommand } from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as inquirer from 'inquirer';
-import {Answers} from 'inquirer';
-import {ReactNativeHelper} from './ReactNativeHelper';
+import { Answers } from 'inquirer';
+import { ReactNativeHelper } from './ReactNativeHelper';
 
 const program = createCommand();
 
@@ -74,14 +74,10 @@ program
   .option('-ios, --ios', 'Only replace app name for iOS')
   .action(async (newName, { dir = process.cwd(), android, ios }) => {
     const rnHelper = new ReactNativeHelper();
-    await rnHelper.renameReactNativeProject(
-      dir,
-      newName,
-      {
-        ios: !android || !!ios,
-        android: !ios || !!android,
-      }
-    );
+    await rnHelper.renameReactNativeProject(dir, newName, {
+      ios: !android || !!ios,
+      android: !ios || !!android,
+    });
   });
 
 program.parse(process.argv);
