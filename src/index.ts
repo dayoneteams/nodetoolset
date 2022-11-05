@@ -3,8 +3,7 @@
 import { createCommand } from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as inquirer from 'inquirer';
-import { Answers } from 'inquirer';
+import inquirer, {Answers} from 'inquirer';
 import { ReactNativeHelper } from './packages/react-native/ReactNativeHelper';
 
 const program = createCommand();
