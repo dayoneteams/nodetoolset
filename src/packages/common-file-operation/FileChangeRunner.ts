@@ -89,6 +89,11 @@ export class FileChangeRunner {
     }
 
     const dest = this.toAbsolutePath(typedFileChange.dest, options.rootDir);
+
+    if (typedFileChange.createIntermediateDirs && !fs.existsSync(dest)) {
+      shell.mkdir('-p', dest);
+    }
+
     shell.mv('-f', targetWithAbsolutePath, dest);
 
     console.log(`${typedFileChange.target} ${colors.green('MOVED')}.`);

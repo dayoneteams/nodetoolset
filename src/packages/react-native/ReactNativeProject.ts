@@ -1,6 +1,6 @@
 import * as path from 'path';
-// import {globbySync} from 'globby';
 import * as fs from 'fs';
+import * as globby from 'globby';
 import { valueFromJsonFile, valueFromXmlFile } from '../utils/file-utils';
 import { replaceFirstMatch, withoutSpaces } from '../utils/string-utils';
 import { UpdateFileContent } from '../common-file-operation/UpdateFileContent';
@@ -77,6 +77,9 @@ export class ReactNativeProject {
     }
 
     if (options.android) {
+      const javaFiles = globby
+        .sync(path.join(this.rootDir, 'android/app/src/main/java/**/*.java'))
+        .map(absPath => path.relative(this.rootDir, absPath));
       const updateAndroidFiles = [
         {
           type: 'updateContent',
@@ -88,18 +91,56 @@ export class ReactNativeProject {
           type: 'updateContent',
           match: `"${this.androidBundleId}"`,
           replaceWith: `"${newBundleId}"`,
-          target: ['android/app/BUCK', 'android/app/_BUCK', 'android/app/build.gradle'],
+          target: [
+            'android/app/BUCK',
+            'android/app/_BUCK',
+            'android/app/build.gradle',
+          ],
         },
-        // {
-        //   type: 'updateContent',
-        //   match: `package ${this.androidBundleId}.`,
-        //   replaceWith: `package ${newBundleId}.`,
-        //   target: [globbySync('android/app/main/java/**/*.java')],
-        // },
+        {
+          type: 'updateContent',
+          match: `package ${this.androidBundleId}`,
+          replaceWith: `package ${newBundleId}`,
+          target: javaFiles,
+        },
       ] as UpdateFileContent[];
-      const moveAndroidFiles = [
-      ] as MoveFile[];
-      androidChanges = [...updateAndroidFiles, ...moveAndroidFiles];
+      const newDirOfJavaFiles = path.join(
+        'android/app/src/main/java',
+        newBundleId.replace(new RegExp('\\.', 'g'), '/')
+      );
+      const moveAndroidFiles: MoveFile[] = globby
+        .sync(
+          path.join(
+            this.rootDir,
+            'android/app/src/main/java',
+            this.androidBundleId.replace(new RegExp('\\.', 'g'), '/'),
+            '/*'
+          ),
+          {
+            onlyFiles: false,
+          }
+        )
+        .map(absPath => path.relative(this.rootDir, absPath))
+        .map(relPath => ({
+          type: 'move',
+          target: relPath,
+          dest: newDirOfJavaFiles,
+          createIntermediateDirs: true,
+        }));
+      const removeUnusedDir: RemoveFile = {
+        type: 'remove',
+        target: [
+          path.join(
+            'android/app/src/main/java',
+            this.androidBundleId.replace(new RegExp('\\.', 'g'), '/')
+          ),
+        ],
+      };
+      androidChanges = [
+        ...updateAndroidFiles,
+        ...moveAndroidFiles,
+        removeUnusedDir,
+      ];
     }
 
     return [...iosChanges, ...androidChanges];
