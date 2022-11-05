@@ -5,6 +5,7 @@ import { replaceFirstMatch, withoutSpaces } from '../utils/string-utils';
 import { UpdateFileContent } from '../common-file-operation/UpdateFileContent';
 import { MoveFile } from '../common-file-operation/MoveFile';
 import { FileChange } from '../common-file-operation/FileChange';
+import { RemoveFile } from '../common-file-operation/RemoveFile';
 
 export class ReactNativeProject {
   rootDir: string;
@@ -28,22 +29,29 @@ export class ReactNativeProject {
     options: { ios: boolean; android: boolean }
   ): Promise<FileChange[]> {
     const newAppKey = withoutSpaces(newDisplayName);
-    const changes = [];
+    let iosChanges: FileChange[] = [];
+    let androidChanges: FileChange[] = [];
 
     if (options.ios) {
-      changes.push(...(await this.toNewIosName(newAppKey, newDisplayName)));
+      iosChanges = await this.iosChangesToNewName(newAppKey, newDisplayName);
     }
 
     if (options.android) {
-      changes.push(...(await this.toNewAndroidName(newAppKey, newDisplayName)));
+      androidChanges = await this.androidChangesToNewName(
+        newAppKey,
+        newDisplayName
+      );
     }
 
-    // TODO: Common files.
+    const commonChanges = this.commonChangesToNewName(
+      newAppKey,
+      newDisplayName
+    );
 
-    return changes;
+    return [...commonChanges, ...iosChanges, ...androidChanges];
   }
 
-  private async toNewIosName(
+  private async iosChangesToNewName(
     newAppKey: string,
     newDisplayName: string
   ): Promise<FileChange[]> {
@@ -122,10 +130,21 @@ export class ReactNativeProject {
       return { target, dest, type: 'move' };
     });
 
-    return [...updateContentBatch, ...firstMoveBatch, ...secondMoveBatch];
+    // Remove iOS build.
+    const cleanBuild: RemoveFile = {
+      type: 'remove',
+      target: ['ios/build'],
+    };
+
+    return [
+      ...updateContentBatch,
+      ...firstMoveBatch,
+      ...secondMoveBatch,
+      cleanBuild,
+    ];
   }
 
-  private async toNewAndroidName(
+  private async androidChangesToNewName(
     newAppKey: string,
     newDisplayName: string
   ): Promise<FileChange[]> {
@@ -144,7 +163,33 @@ export class ReactNativeProject {
       },
     ];
 
-    return fileChanges;
+    // Remove Android build.
+    const cleanBuild: RemoveFile = {
+      type: 'remove',
+      target: ['android/.gradle', 'android/app/build', 'android/build'],
+    };
+
+    return [...fileChanges, cleanBuild];
+  }
+
+  private commonChangesToNewName(
+    newAppKey: string,
+    newDisplayName: string
+  ): UpdateFileContent[] {
+    return [
+      {
+        type: 'updateContent',
+        match: `"displayName": "${this.appDisplayName}"`,
+        replaceWith: `"displayName": "${newDisplayName}"`,
+        target: ['app.json'],
+      },
+      {
+        type: 'updateContent',
+        match: `"name": "${this.appKey}"`,
+        replaceWith: `"name": "${newAppKey}"`,
+        target: ['app.json', 'package.json'],
+      },
+    ];
   }
 
   private async analyze() {
@@ -152,7 +197,7 @@ export class ReactNativeProject {
   }
 
   private async detectAppName() {
-    const appDotJsonFilePath = path.join(this.rootDir, './app.json');
+    const appDotJsonFilePath = path.join(this.rootDir, 'app.json');
     const appDotJsonFileExists = fs.existsSync(appDotJsonFilePath);
     if (!appDotJsonFileExists) {
       console.error('app.json not found.');

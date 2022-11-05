@@ -5,6 +5,7 @@ import * as colors from 'colors';
 import { FileChange } from './FileChange';
 import { MoveFile } from './MoveFile';
 import { UpdateFileContent } from './UpdateFileContent';
+import { RemoveFile } from './RemoveFile';
 
 interface RunOptions {
   rootDir?: string;
@@ -37,15 +38,10 @@ export class FileChangeRunner {
         this.updateFileContent(fileChange as UpdateFileContent, options);
         return;
       }
-      // case 'remove': {
-      //   const typedFileChange = fileChange as UpdateFileContent;
-      //   shell.rm(
-      //     '-rf',
-      //     target
-      //   );
-      //   console.log(`${fileChange.target} ${colors.green('REMOVED')}.`);
-      //   return;
-      // }
+      case 'remove': {
+        this.removeFile(fileChange as RemoveFile, options);
+        return;
+      }
       default: {
         throw new Error(`${fileChange.type} type not supported`);
       }
@@ -84,7 +80,10 @@ export class FileChangeRunner {
       options.rootDir
     );
 
-    const fileExist = this.assertFileExisting(targetWithAbsolutePath, !!options.skipNoneExistingTargets);
+    const fileExist = this.assertFileExisting(
+      targetWithAbsolutePath,
+      !!options.skipNoneExistingTargets
+    );
     if (!fileExist) {
       return;
     }
@@ -95,15 +94,26 @@ export class FileChangeRunner {
     console.log(`${typedFileChange.target} ${colors.green('MOVED')}.`);
   }
 
-  // private toAbsolutePaths(target: string[], rootDir?: string): string[] {
-  //   if (!rootDir) {
-  //     return target;
-  //   }
-  //
-  //   return target.map(
-  //     filePath => this.toAbsolutePath(filePath, rootDir) as string
-  //   );
-  // }
+  private removeFile(fileChange: RemoveFile, options: RunOptions = {}) {
+    const calculateAbsPath = (filePath: string) => ({
+      filePath,
+      absPath: this.toAbsolutePath(filePath, options.rootDir),
+    });
+    const removeNonExisting = (pathPair: PathPair) =>
+      this.assertFileExisting(
+        pathPair.absPath,
+        !!options.skipNoneExistingTargets
+      );
+    const updateContent = ({ filePath, absPath }: PathPair) => {
+      shell.rm('-i', absPath);
+      console.log(`${filePath} ${colors.green('REMOVED')}.`);
+    };
+
+    fileChange.target
+      .map(calculateAbsPath)
+      .filter(removeNonExisting)
+      .forEach(updateContent);
+  }
 
   private toAbsolutePath(target: string, rootDir?: string): string {
     if (!rootDir) {
@@ -112,16 +122,6 @@ export class FileChangeRunner {
 
     return path.join(rootDir, target);
   }
-
-  // private assertExisting(filePath: string | string[]) {
-  //   if (Array.isArray(filePath)) {
-  //     filePath.forEach(this.assertExisting);
-  //   }
-  //
-  //   if (!fs.existsSync(filePath as string)) {
-  //     throw new Error(`${filePath} not founded.`);
-  //   }
-  // }
 
   private assertFileExisting(filePath: string, skip: boolean): boolean {
     if (fs.existsSync(filePath)) {
