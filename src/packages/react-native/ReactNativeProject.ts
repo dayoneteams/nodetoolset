@@ -1,6 +1,7 @@
 import * as path from 'path';
-import { valueFromJsonFile } from '../utils/file-utils';
+// import {globbySync} from 'globby';
 import * as fs from 'fs';
+import { valueFromJsonFile, valueFromXmlFile } from '../utils/file-utils';
 import { replaceFirstMatch, withoutSpaces } from '../utils/string-utils';
 import { UpdateFileContent } from '../common-file-operation/UpdateFileContent';
 import { MoveFile } from '../common-file-operation/MoveFile';
@@ -11,10 +12,11 @@ export class ReactNativeProject {
   rootDir: string;
   appDisplayName: string;
   appKey: string;
+  androidBundleId: string;
 
   static async build(rootDir: string): Promise<ReactNativeProject> {
     const prj = new ReactNativeProject(rootDir);
-    await prj.analyze();
+    await prj.detectAppName();
     return prj;
   }
 
@@ -22,12 +24,15 @@ export class ReactNativeProject {
     this.rootDir = rootDir;
     this.appDisplayName = '';
     this.appKey = '';
+    this.androidBundleId = '';
   }
 
   async toNewName(
     newDisplayName: string,
     options: { ios: boolean; android: boolean }
   ): Promise<FileChange[]> {
+    await this.detectAppName();
+
     const newAppKey = withoutSpaces(newDisplayName);
     let iosChanges: FileChange[] = [];
     let androidChanges: FileChange[] = [];
@@ -49,6 +54,55 @@ export class ReactNativeProject {
     );
 
     return [...commonChanges, ...iosChanges, ...androidChanges];
+  }
+
+  async toNewBundleId(
+    newBundleId: string,
+    options: { ios: boolean; android: boolean }
+  ): Promise<FileChange[]> {
+    let androidChanges: FileChange[] = [];
+    let iosChanges: FileChange[] = [];
+
+    await this.detectAndroidBundleId();
+
+    if (options.ios) {
+      iosChanges = [
+        {
+          type: 'updateContent',
+          match: new RegExp('PRODUCT_BUNDLE_IDENTIFIER = "(.*?)"'),
+          replaceWith: `PRODUCT_BUNDLE_IDENTIFIER = "${newBundleId}"`,
+          target: [`ios/${this.appKey}.xcodeproj/project.pbxproj`],
+        },
+      ] as UpdateFileContent[];
+    }
+
+    if (options.android) {
+      const updateAndroidFiles = [
+        {
+          type: 'updateContent',
+          match: `package="${this.androidBundleId}"`,
+          replaceWith: `package="${newBundleId}"`,
+          target: ['android/app/src/main/AndroidManifest.xml'],
+        },
+        {
+          type: 'updateContent',
+          match: `"${this.androidBundleId}"`,
+          replaceWith: `"${newBundleId}"`,
+          target: ['android/app/BUCK', 'android/app/_BUCK', 'android/app/build.gradle'],
+        },
+        // {
+        //   type: 'updateContent',
+        //   match: `package ${this.androidBundleId}.`,
+        //   replaceWith: `package ${newBundleId}.`,
+        //   target: [globbySync('android/app/main/java/**/*.java')],
+        // },
+      ] as UpdateFileContent[];
+      const moveAndroidFiles = [
+      ] as MoveFile[];
+      androidChanges = [...updateAndroidFiles, ...moveAndroidFiles];
+    }
+
+    return [...iosChanges, ...androidChanges];
   }
 
   private async iosChangesToNewName(
@@ -192,16 +246,12 @@ export class ReactNativeProject {
     ];
   }
 
-  private async analyze() {
-    await this.detectAppName();
-  }
-
   private async detectAppName() {
     const appDotJsonFilePath = path.join(this.rootDir, 'app.json');
     const appDotJsonFileExists = fs.existsSync(appDotJsonFilePath);
     if (!appDotJsonFileExists) {
       console.error('app.json not found.');
-      return;
+      process.exit(1);
     }
 
     this.appDisplayName = await valueFromJsonFile(
@@ -211,8 +261,23 @@ export class ReactNativeProject {
     this.appKey = await valueFromJsonFile('name', appDotJsonFilePath);
     if (!this.appKey) {
       console.error(
-        'App name not found in app.json file. Please ensure "name" key exists in your app.json file.'
+        'App name not found in app.json. Please ensure "name" key exists in your app.json file.'
       );
     }
+  }
+
+  private async detectAndroidBundleId() {
+    const androidManifestPath = 'android/app/src/main/AndroidManifest.xml';
+    const androidManifestAbsPath = path.join(this.rootDir, androidManifestPath);
+    const androidManifestFileExists = fs.existsSync(androidManifestAbsPath);
+    if (!androidManifestFileExists) {
+      return;
+    }
+
+    this.androidBundleId = await valueFromXmlFile(
+      'manifest',
+      'package',
+      androidManifestAbsPath
+    );
   }
 }

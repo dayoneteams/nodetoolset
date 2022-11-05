@@ -105,7 +105,7 @@ export class FileChangeRunner {
         !!options.skipNoneExistingTargets
       );
     const updateContent = ({ filePath, absPath }: PathPair) => {
-      shell.rm('-i', absPath);
+      shell.rm('-rf', absPath);
       console.log(`${filePath} ${colors.green('REMOVED')}.`);
     };
 

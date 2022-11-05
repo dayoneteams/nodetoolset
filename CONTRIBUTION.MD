@@ -3,17 +3,10 @@ life easier.
 
 Built with BIG love from DayOne Teams!
 
-### Installation
-`[sudo] npm install -g nodetoolset`
+### Getting started
+`npm i`
 
-### Usage
-- Recursively remove all `node_modules` directories in a certain `directory`
-to free up your disk space
+### Test commands
 ```
-nts node:remove-node_modules <dir>
-```
-
-- Get command help
-```
-nts --help
+npm run dev -- <command> <options> <...params>
 ```

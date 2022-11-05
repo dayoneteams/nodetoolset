@@ -5,7 +5,7 @@ import * as fs from 'fs-extra';
 import * as path from 'path';
 import * as inquirer from 'inquirer';
 import { Answers } from 'inquirer';
-import { ReactNativeHelper } from './ReactNativeHelper';
+import { ReactNativeHelper } from './packages/react-native/ReactNativeHelper';
 
 const program = createCommand();
 
@@ -17,7 +17,7 @@ program
     'Recursively remove all node_modules directories within provided <dir-path>.'
   )
   // .option(
-  //   '-p, --pickup',
+  //   '--pickup',
   //   'Interactively pickup which directories to remove from a displayed list'
   // )
   .action(async dir => {
@@ -69,15 +69,31 @@ program
 program
   .command('rn:rename-app <new-app-name>')
   .description('Rename React Native app name.')
-  .option('-dir, --dir [dirPath]', 'Path to React Native project root folder.')
-  .option('-android, --android', 'Only change Android files.')
-  .option('-ios, --ios', 'Only change iOS files.')
-  .action(async (newName, { dir = process.cwd(), android, ios }) => {
+  .option('--dir [dirPath]', 'Path to React Native project root folder.')
+  .option('--android', 'Only change Android files.')
+  .option('--ios', 'Only change iOS files.')
+  .action(async (newName, { dir = process.cwd(), android, ios, bundleID }) => {
     const rnHelper = new ReactNativeHelper();
-    await rnHelper.renameReactNativeProject(dir, newName, {
+    const options = {
       ios: !android || !!ios,
       android: !ios || !!android,
-    });
+    };
+    await rnHelper.renameProject(dir, newName, options);
+  });
+
+program
+  .command('rn:change-bundle-id <new-bundle-id>')
+  .description('Change React Native app bundle ID.')
+  .option('--dir [dirPath]', 'Path to React Native project root folder.')
+  .option('--android', 'Only change Android files.')
+  .option('--ios', 'Only change iOS files.')
+  .action(async (newBundleId, { dir = process.cwd(), android, ios }) => {
+    const rnHelper = new ReactNativeHelper();
+    const options = {
+      ios: !android || !!ios,
+      android: !ios || !!android,
+    };
+    await rnHelper.changeBundleId(dir, newBundleId, options);
   });
 
 program.parse(process.argv);
