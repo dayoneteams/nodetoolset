@@ -74,13 +74,16 @@ export class ReactNativeProject {
         type: 'updateContent',
         match: `text="${this.appDisplayName}"`,
         replaceWith: `text="${newDisplayName}"`,
-        target: `ios/${this.appKey}/Base.lproj/LaunchScreen.xib`,
+        target: [
+          `ios/${this.appKey}/Base.lproj/LaunchScreen.xib`,
+          `ios/${this.appKey}/LaunchScreen.storyboard`,
+        ],
       },
       {
         type: 'updateContent',
         match: this.appDisplayName,
         replaceWith: newDisplayName,
-        target: `ios/${this.appKey}/Info.plist`,
+        target: [`ios/${this.appKey}/Info.plist`],
       },
     ];
 
@@ -126,12 +129,12 @@ export class ReactNativeProject {
     newAppKey: string,
     newDisplayName: string
   ): Promise<FileChange[]> {
-    return [
+    const fileChanges: UpdateFileContent[] = [
       {
         type: 'updateContent',
         match: `<string name='app_name'>${this.appDisplayName}</string>`,
         replaceWith: `<string name='app_name'>${newDisplayName}</string>`,
-        target: 'android/app/src/main/res/values/strings.xml',
+        target: ['android/app/src/main/res/values/strings.xml'],
       },
       {
         type: 'updateContent',
@@ -139,7 +142,9 @@ export class ReactNativeProject {
         replaceWith: newAppKey,
         target: ['index.android.js', 'android/settings.gradle'],
       },
-    ] as UpdateFileContent[];
+    ];
+
+    return fileChanges;
   }
 
   private async analyze() {

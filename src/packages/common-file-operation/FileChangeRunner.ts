@@ -1,15 +1,20 @@
 import * as shell from 'shelljs';
 import * as path from 'path';
 import * as fs from 'fs';
-import * as colors from "colors";
-import {FileChange} from './FileChange';
-import {MoveFile} from './MoveFile';
-import {UpdateFileContent} from './UpdateFileContent';
+import * as colors from 'colors';
+import { FileChange } from './FileChange';
+import { MoveFile } from './MoveFile';
+import { UpdateFileContent } from './UpdateFileContent';
 
 interface RunOptions {
   rootDir?: string;
   report?: boolean;
   skipNoneExistingTargets?: boolean;
+}
+
+interface PathPair {
+  filePath: string;
+  absPath: string;
 }
 
 export class FileChangeRunner {
@@ -19,7 +24,10 @@ export class FileChangeRunner {
     }
   }
 
-  private async run(fileChange: FileChange, options: RunOptions = {}) {
+  private async run(
+    fileChange: FileChange,
+    options: RunOptions = {}
+  ): Promise<void> {
     switch (fileChange.type) {
       case 'move': {
         this.moveFile(fileChange as MoveFile, options);
@@ -44,30 +52,41 @@ export class FileChangeRunner {
     }
   }
 
-  private updateFileContent(fileChange: UpdateFileContent, options: RunOptions = {}) {
-    const targetWithAbsolutePath = this.toAbsolutePaths(fileChange.target, options.rootDir);
+  private updateFileContent(
+    fileChange: UpdateFileContent,
+    options: RunOptions = {}
+  ) {
+    const calculateAbsPath = (filePath: string) => ({
+      filePath,
+      absPath: this.toAbsolutePath(filePath, options.rootDir),
+    });
+    const removeNonExisting = (pathPair: PathPair) =>
+      this.assertFileExisting(
+        pathPair.absPath,
+        !!options.skipNoneExistingTargets
+      );
+    const updateContent = ({ filePath, absPath }: PathPair) => {
+      shell.sed('-i', fileChange.match, fileChange.replaceWith, absPath);
+      console.log(`${filePath} ${colors.green('UPDATED')}.`);
+    };
 
-    if (options.skipNoneExistingTargets) {
-      this.assertExisting(targetWithAbsolutePath);
-    }
-
-    shell.sed(
-      '-i',
-      fileChange.match,
-      fileChange.replaceWith,
-      targetWithAbsolutePath
-    );
-
-    fileChange.target.forEach((filePath) => `${filePath} ${colors.green('UPDATED')}.`);
+    fileChange.target
+      .map(calculateAbsPath)
+      .filter(removeNonExisting)
+      .forEach(updateContent);
   }
 
   private moveFile(fileChange: MoveFile, options: RunOptions = {}) {
     const typedFileChange = fileChange as MoveFile;
 
-    const targetWithAbsolutePath = this.toAbsolutePath(fileChange.target, options.rootDir);
+    const targetWithAbsolutePath = this.toAbsolutePath(
+      fileChange.target,
+      options.rootDir
+    );
 
-    if (options.skipNoneExistingTargets) {
-      this.assertExisting(targetWithAbsolutePath);
+    const fileExist = this.assertFileExisting(targetWithAbsolutePath, !!options.skipNoneExistingTargets);
+    if (!fileExist) {
+      return;
     }
 
     const dest = this.toAbsolutePath(typedFileChange.dest, options.rootDir);
@@ -76,13 +95,15 @@ export class FileChangeRunner {
     console.log(`${typedFileChange.target} ${colors.green('MOVED')}.`);
   }
 
-  private toAbsolutePaths(target: string[], rootDir?: string): string[] {
-    if (!rootDir) {
-      return target;
-    }
-
-    return target.map(filePath => this.toAbsolutePath(filePath, rootDir) as string);
-  }
+  // private toAbsolutePaths(target: string[], rootDir?: string): string[] {
+  //   if (!rootDir) {
+  //     return target;
+  //   }
+  //
+  //   return target.map(
+  //     filePath => this.toAbsolutePath(filePath, rootDir) as string
+  //   );
+  // }
 
   private toAbsolutePath(target: string, rootDir?: string): string {
     if (!rootDir) {
@@ -92,13 +113,32 @@ export class FileChangeRunner {
     return path.join(rootDir, target);
   }
 
-  private assertExisting(filePath: string | string[]) {
-    if (Array.isArray(filePath)) {
-      filePath.forEach(this.assertExisting);
+  // private assertExisting(filePath: string | string[]) {
+  //   if (Array.isArray(filePath)) {
+  //     filePath.forEach(this.assertExisting);
+  //   }
+  //
+  //   if (!fs.existsSync(filePath as string)) {
+  //     throw new Error(`${filePath} not founded.`);
+  //   }
+  // }
+
+  private assertFileExisting(filePath: string, skip: boolean): boolean {
+    if (fs.existsSync(filePath)) {
+      return true;
     }
 
-    if (!fs.existsSync(filePath as string)) {
-      throw new Error(`${filePath} not founded.`);
+    if (skip) {
+      console.log(`${filePath} ${colors.yellow('NOT FOUND and SKIPPED')}.`);
+    } else {
+      this.exitWithNotFound(filePath);
     }
+
+    return false;
+  }
+
+  private exitWithNotFound(filePath: string) {
+    console.error(`${filePath} ${colors.red('NOT FOUND')}.`);
+    process.exit(1);
   }
 }
