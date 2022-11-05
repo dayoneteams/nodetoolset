@@ -3,8 +3,9 @@
 import { createCommand } from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import inquirer, {Answers} from 'inquirer';
 import { ReactNativeHelper } from './packages/react-native/ReactNativeHelper';
+
+const inquirer = require('inquirer');
 
 const program = createCommand();
 
@@ -21,10 +22,8 @@ program
   // )
   .action(async (dir) => {
     const searchDir = 'node_modules';
-    const foundDirs: string[] = _findDirectoriesRecursivelyByName(
-      searchDir,
-      dir
-    );
+    const foundDirs: string[] = _findDirectoriesRecursivelyByName(searchDir, dir);
+    console.log(foundDirs)
 
     if (foundDirs.length === 0) {
       console.log(
@@ -40,7 +39,7 @@ program
       console.log(`${i + 1}. ${dir}`);
     });
 
-    const answers: Answers = await inquirer.prompt([
+    const answers = await inquirer.prompt([
       {
         type: 'confirm',
         message: 'Are you sure you want to remove all directories above?',
