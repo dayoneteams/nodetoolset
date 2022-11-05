@@ -117,7 +117,7 @@ export class ReactNativeProject {
       `ios/${this.appKey}-Bridging-Header.h`,
     ];
     const firstMoveBatch: MoveFile[] = dirsAndFilesToMoveFirst.map(
-      filePath => ({
+      (filePath) => ({
         type: 'move',
         target: filePath,
         dest: filePath.replace(new RegExp(this.appKey, 'i'), newAppKey),
@@ -126,20 +126,18 @@ export class ReactNativeProject {
 
     // Final, move sub folders and files. Paths are changed as root folders have been moved.
     const dirsAndFilesToMoveLast = [
-      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${
-        this.appKey
-      }-tvOS.xcscheme`,
-      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${
-        this.appKey
-      }.xcscheme`,
+      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${this.appKey}-tvOS.xcscheme`,
+      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${this.appKey}.xcscheme`,
       `ios/${this.appKey}Tests/${this.appKey}Tests.m`,
       `ios/${this.appKey}/${this.appKey}.entitlements`,
     ];
-    const secondMoveBatch: MoveFile[] = dirsAndFilesToMoveLast.map(filePath => {
-      const target = replaceFirstMatch(filePath, this.appKey, newAppKey);
-      const dest = replaceFirstMatch(target, this.appKey, newAppKey);
-      return { target, dest, type: 'move' };
-    });
+    const secondMoveBatch: MoveFile[] = dirsAndFilesToMoveLast.map(
+      (filePath) => {
+        const target = replaceFirstMatch(filePath, this.appKey, newAppKey);
+        const dest = replaceFirstMatch(target, this.appKey, newAppKey);
+        return { target, dest, type: 'move' };
+      }
+    );
 
     // Remove iOS build.
     const cleanBuild: RemoveFile = {
@@ -207,8 +205,7 @@ export class ReactNativeProject {
     const appDotJsonFilePath = path.join(this.rootDir, 'app.json');
     const appDotJsonFileExists = fs.existsSync(appDotJsonFilePath);
     if (!appDotJsonFileExists) {
-      console.error('app.json not found.');
-      process.exit(1);
+      throw new Error('app.json not found.');
     }
 
     this.appDisplayName = await valueFromJsonFile(
@@ -217,7 +214,7 @@ export class ReactNativeProject {
     );
     this.appKey = await valueFromJsonFile('name', appDotJsonFilePath);
     if (!this.appKey) {
-      console.error(
+      throw new Error(
         'App name not found in app.json. Please ensure "name" key exists in your app.json file.'
       );
     }
@@ -243,12 +240,8 @@ export class ReactNativeProject {
       'index.ios.js',
       `ios/${this.appKey}.xcodeproj/project.pbxproj`,
       `ios/${this.appKey}.xcworkspace/contents.xcworkspacedata`,
-      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${
-        this.appKey
-      }-tvOS.xcscheme`,
-      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${
-        this.appKey
-      }.xcscheme`,
+      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${this.appKey}-tvOS.xcscheme`,
+      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${this.appKey}.xcscheme`,
       `ios/${this.appKey}/AppDelegate.m`,
       `ios/${this.appKey}Tests/${this.appKey}Tests.m`,
       'ios/build/info.plist',
@@ -277,7 +270,7 @@ export class ReactNativeProject {
   private androidChangesToNewBundleId(newBundleId: string): FileChange[] {
     const javaFiles = globby
       .sync(path.join(this.rootDir, 'android/app/src/main/java/**/*.java'))
-      .map(absPath => path.relative(this.rootDir, absPath));
+      .map((absPath) => path.relative(this.rootDir, absPath));
     const updateAndroidFiles = [
       {
         type: 'updateContent',
@@ -318,8 +311,8 @@ export class ReactNativeProject {
           onlyFiles: false,
         }
       )
-      .map(absPath => path.relative(this.rootDir, absPath))
-      .map(relPath => ({
+      .map((absPath) => path.relative(this.rootDir, absPath))
+      .map((relPath) => ({
         type: 'move',
         target: relPath,
         dest: newDirOfJavaFiles,

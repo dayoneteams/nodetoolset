@@ -136,14 +136,9 @@ export class FileChangeRunner {
     if (skip) {
       console.log(`${filePath} ${colors.yellow('NOT FOUND and SKIPPED')}.`);
     } else {
-      this.exitWithNotFound(filePath);
+      throw new Error(`${filePath} not found.`);
     }
 
     return false;
-  }
-
-  private exitWithNotFound(filePath: string) {
-    console.error(`${filePath} ${colors.red('NOT FOUND')}.`);
-    process.exit(1);
   }
 }

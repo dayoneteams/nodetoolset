@@ -20,7 +20,7 @@ program
   //   '--pickup',
   //   'Interactively pickup which directories to remove from a displayed list'
   // )
-  .action(async dir => {
+  .action(async (dir) => {
     const searchDir = 'node_modules';
     const foundDirs: string[] = _findDirectoriesRecursivelyByName(
       searchDir,
@@ -55,7 +55,7 @@ program
       return;
     }
 
-    foundDirs.forEach(dirPath => {
+    foundDirs.forEach((dirPath) => {
       fs.removeSync(dirPath);
     });
 
@@ -72,7 +72,7 @@ program
   .option('--dir [dirPath]', 'Path to React Native project root folder.')
   .option('--android', 'Only change Android files.')
   .option('--ios', 'Only change iOS files.')
-  .action(async (newName, { dir = process.cwd(), android, ios, bundleID }) => {
+  .action(async (newName, { dir = process.cwd(), android, ios }) => {
     const rnHelper = new ReactNativeHelper();
     const options = {
       ios: !android || !!ios,
@@ -105,7 +105,7 @@ if (!program.args || program.args.length === 0) {
 function _findDirectoriesRecursivelyByName(searchDir: string, inDir: string) {
   const result: string[] = [];
   const filesAndFolders = fs.readdirSync(inDir, { withFileTypes: true });
-  filesAndFolders.forEach(item => {
+  filesAndFolders.forEach((item) => {
     if (item.isDirectory() && item.name[0] !== '.') {
       const subDirPath = path.join(inDir, item.name);
       if (item.name === searchDir) {
@@ -115,7 +115,7 @@ function _findDirectoriesRecursivelyByName(searchDir: string, inDir: string) {
           searchDir,
           subDirPath
         );
-        resultInSubDir.forEach(item => result.push(item));
+        resultInSubDir.forEach((item) => result.push(item));
       }
     }
   });
