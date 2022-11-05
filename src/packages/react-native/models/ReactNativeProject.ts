@@ -1,12 +1,16 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as globby from 'globby';
-import { valueFromJsonFile, valueFromXmlFile } from '../utils/file-utils';
-import { replaceFirstMatch, withoutSpaces } from '../utils/string-utils';
-import { UpdateFileContent } from '../common-file-operation/UpdateFileContent';
-import { MoveFile } from '../common-file-operation/MoveFile';
-import { FileChange } from '../common-file-operation/FileChange';
-import { RemoveFile } from '../common-file-operation/RemoveFile';
+import { valueFromJsonFile, valueFromXmlFile } from '../../utils/file-util';
+import {
+  javaPackageToDirPath,
+  replaceFirstMatch,
+  withoutSpaces,
+} from '../../utils/string-util';
+import { UpdateFileContent } from '../../file-change/models/UpdateFileContent';
+import { MoveFile } from '../../file-change/models/MoveFile';
+import { FileChange } from '../../file-change/models/FileChange';
+import { RemoveFile } from '../../file-change/models/RemoveFile';
 
 export class ReactNativeProject {
   rootDir: string;
@@ -66,81 +70,11 @@ export class ReactNativeProject {
     await this.detectAndroidBundleId();
 
     if (options.ios) {
-      iosChanges = [
-        {
-          type: 'updateContent',
-          match: new RegExp('PRODUCT_BUNDLE_IDENTIFIER = "(.*?)"'),
-          replaceWith: `PRODUCT_BUNDLE_IDENTIFIER = "${newBundleId}"`,
-          target: [`ios/${this.appKey}.xcodeproj/project.pbxproj`],
-        },
-      ] as UpdateFileContent[];
+      iosChanges = this.iosChangesToNewBundleId(newBundleId);
     }
 
     if (options.android) {
-      const javaFiles = globby
-        .sync(path.join(this.rootDir, 'android/app/src/main/java/**/*.java'))
-        .map(absPath => path.relative(this.rootDir, absPath));
-      const updateAndroidFiles = [
-        {
-          type: 'updateContent',
-          match: `package="${this.androidBundleId}"`,
-          replaceWith: `package="${newBundleId}"`,
-          target: ['android/app/src/main/AndroidManifest.xml'],
-        },
-        {
-          type: 'updateContent',
-          match: `"${this.androidBundleId}"`,
-          replaceWith: `"${newBundleId}"`,
-          target: [
-            'android/app/BUCK',
-            'android/app/_BUCK',
-            'android/app/build.gradle',
-          ],
-        },
-        {
-          type: 'updateContent',
-          match: `package ${this.androidBundleId}`,
-          replaceWith: `package ${newBundleId}`,
-          target: javaFiles,
-        },
-      ] as UpdateFileContent[];
-      const newDirOfJavaFiles = path.join(
-        'android/app/src/main/java',
-        newBundleId.replace(new RegExp('\\.', 'g'), '/')
-      );
-      const moveAndroidFiles: MoveFile[] = globby
-        .sync(
-          path.join(
-            this.rootDir,
-            'android/app/src/main/java',
-            this.androidBundleId.replace(new RegExp('\\.', 'g'), '/'),
-            '/*'
-          ),
-          {
-            onlyFiles: false,
-          }
-        )
-        .map(absPath => path.relative(this.rootDir, absPath))
-        .map(relPath => ({
-          type: 'move',
-          target: relPath,
-          dest: newDirOfJavaFiles,
-          createIntermediateDirs: true,
-        }));
-      const removeUnusedDir: RemoveFile = {
-        type: 'remove',
-        target: [
-          path.join(
-            'android/app/src/main/java',
-            this.androidBundleId.replace(new RegExp('\\.', 'g'), '/')
-          ),
-        ],
-      };
-      androidChanges = [
-        ...updateAndroidFiles,
-        ...moveAndroidFiles,
-        removeUnusedDir,
-      ];
+      androidChanges = this.androidChangesToNewBundleId(newBundleId);
     }
 
     return [...iosChanges, ...androidChanges];
@@ -151,25 +85,10 @@ export class ReactNativeProject {
     newDisplayName: string
   ): Promise<FileChange[]> {
     // Update all files' content.
-    const filesToUpdateContent = [
-      'index.ios.js',
-      `ios/${this.appKey}.xcodeproj/project.pbxproj`,
-      `ios/${this.appKey}.xcworkspace/contents.xcworkspacedata`,
-      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${
-        this.appKey
-      }-tvOS.xcscheme`,
-      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${
-        this.appKey
-      }.xcscheme`,
-      `ios/${this.appKey}/AppDelegate.m`,
-      `ios/${this.appKey}Tests/${this.appKey}Tests.m`,
-      'ios/build/info.plist',
-      'ios/Podfile',
-    ];
     const updateContentBatch: UpdateFileContent[] = [
       {
         type: 'updateContent',
-        target: filesToUpdateContent,
+        target: this.iosFilesWithAppKeyInContent(),
         match: this.appKey,
         replaceWith: newAppKey,
       },
@@ -177,10 +96,7 @@ export class ReactNativeProject {
         type: 'updateContent',
         match: `text="${this.appDisplayName}"`,
         replaceWith: `text="${newDisplayName}"`,
-        target: [
-          `ios/${this.appKey}/Base.lproj/LaunchScreen.xib`,
-          `ios/${this.appKey}/LaunchScreen.storyboard`,
-        ],
+        target: this.iosLaunchScreenFiles(),
       },
       {
         type: 'updateContent',
@@ -320,5 +236,105 @@ export class ReactNativeProject {
       'package',
       androidManifestAbsPath
     );
+  }
+
+  private iosFilesWithAppKeyInContent(): string[] {
+    return [
+      'index.ios.js',
+      `ios/${this.appKey}.xcodeproj/project.pbxproj`,
+      `ios/${this.appKey}.xcworkspace/contents.xcworkspacedata`,
+      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${
+        this.appKey
+      }-tvOS.xcscheme`,
+      `ios/${this.appKey}.xcodeproj/xcshareddata/xcschemes/${
+        this.appKey
+      }.xcscheme`,
+      `ios/${this.appKey}/AppDelegate.m`,
+      `ios/${this.appKey}Tests/${this.appKey}Tests.m`,
+      'ios/build/info.plist',
+      'ios/Podfile',
+    ];
+  }
+
+  private iosLaunchScreenFiles(): string[] {
+    return [
+      `ios/${this.appKey}/Base.lproj/LaunchScreen.xib`,
+      `ios/${this.appKey}/LaunchScreen.storyboard`,
+    ];
+  }
+
+  private iosChangesToNewBundleId(newBundleId: string): FileChange[] {
+    return [
+      {
+        type: 'updateContent',
+        match: new RegExp('PRODUCT_BUNDLE_IDENTIFIER = "(.*?)"'),
+        replaceWith: `PRODUCT_BUNDLE_IDENTIFIER = "${newBundleId}"`,
+        target: [`ios/${this.appKey}.xcodeproj/project.pbxproj`],
+      },
+    ] as UpdateFileContent[];
+  }
+
+  private androidChangesToNewBundleId(newBundleId: string): FileChange[] {
+    const javaFiles = globby
+      .sync(path.join(this.rootDir, 'android/app/src/main/java/**/*.java'))
+      .map(absPath => path.relative(this.rootDir, absPath));
+    const updateAndroidFiles = [
+      {
+        type: 'updateContent',
+        match: `package="${this.androidBundleId}"`,
+        replaceWith: `package="${newBundleId}"`,
+        target: ['android/app/src/main/AndroidManifest.xml'],
+      },
+      {
+        type: 'updateContent',
+        match: `"${this.androidBundleId}"`,
+        replaceWith: `"${newBundleId}"`,
+        target: [
+          'android/app/BUCK',
+          'android/app/_BUCK',
+          'android/app/build.gradle',
+        ],
+      },
+      {
+        type: 'updateContent',
+        match: `package ${this.androidBundleId}`,
+        replaceWith: `package ${newBundleId}`,
+        target: javaFiles,
+      },
+    ] as UpdateFileContent[];
+    const newDirOfJavaFiles = path.join(
+      'android/app/src/main/java',
+      javaPackageToDirPath(newBundleId)
+    );
+    const moveAndroidFiles: MoveFile[] = globby
+      .sync(
+        path.join(
+          this.rootDir,
+          'android/app/src/main/java',
+          javaPackageToDirPath(this.androidBundleId),
+          '/*'
+        ),
+        {
+          onlyFiles: false,
+        }
+      )
+      .map(absPath => path.relative(this.rootDir, absPath))
+      .map(relPath => ({
+        type: 'move',
+        target: relPath,
+        dest: newDirOfJavaFiles,
+        createIntermediateDirs: true,
+      }));
+    const removeUnusedDir: RemoveFile = {
+      type: 'remove',
+      target: [
+        path.join(
+          'android/app/src/main/java',
+          javaPackageToDirPath(this.androidBundleId)
+        ),
+      ],
+    };
+
+    return [...updateAndroidFiles, ...moveAndroidFiles, removeUnusedDir];
   }
 }

@@ -1,5 +1,5 @@
-import { ReactNativeProject } from './ReactNativeProject';
-import { FileChangeRunner } from '../common-file-operation/FileChangeRunner';
+import { ReactNativeProject } from './models/ReactNativeProject';
+import { FileChangeRunner } from '../file-change/FileChangeRunner';
 
 export class ReactNativeHelper {
   constructor() {}

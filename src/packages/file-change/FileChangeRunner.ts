@@ -2,10 +2,10 @@ import * as shell from 'shelljs';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as colors from 'colors';
-import { FileChange } from './FileChange';
-import { MoveFile } from './MoveFile';
-import { UpdateFileContent } from './UpdateFileContent';
-import { RemoveFile } from './RemoveFile';
+import { FileChange } from './models/FileChange';
+import { MoveFile } from './models/MoveFile';
+import { UpdateFileContent } from './models/UpdateFileContent';
+import { RemoveFile } from './models/RemoveFile';
 
 interface RunOptions {
   rootDir?: string;
