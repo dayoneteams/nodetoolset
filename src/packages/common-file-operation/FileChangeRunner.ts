@@ -1,9 +1,10 @@
 import * as shell from 'shelljs';
 import * as path from 'path';
 import * as fs from 'fs';
-import { FileChange } from './FileChange';
-import { MoveFile } from './MoveFile';
-import { UpdateFileContent } from './UpdateFileContent';
+import * as colors from "colors";
+import {FileChange} from './FileChange';
+import {MoveFile} from './MoveFile';
+import {UpdateFileContent} from './UpdateFileContent';
 
 interface RunOptions {
   rootDir?: string;
@@ -19,46 +20,85 @@ export class FileChangeRunner {
   }
 
   private async run(fileChange: FileChange, options: RunOptions = {}) {
-    if (Array.isArray(fileChange.target)) {
-      for (let i = 0; i < fileChange.target.length; i++) {
-        await this.run(
-          {
-            ...fileChange,
-            target: fileChange.target[i],
-          },
-          options
-        );
-      }
-      return;
-    }
-
-    const target = options.rootDir
-      ? path.join(options.rootDir, fileChange.target)
-      : fileChange.target;
-    if (options.skipNoneExistingTargets && !fs.existsSync(target)) {
-      return;
-    }
-
     switch (fileChange.type) {
       case 'move': {
-        const typedFileChange = fileChange as MoveFile;
-        const dest = options.rootDir
-          ? path.join(options.rootDir, typedFileChange.dest)
-          : typedFileChange.dest;
-        return shell.mv('-f', target, dest);
+        this.moveFile(fileChange as MoveFile, options);
+        return;
       }
       case 'updateContent': {
-        const typedFileChange = fileChange as UpdateFileContent;
-        return shell.sed(
-          '-i',
-          typedFileChange.match,
-          typedFileChange.replaceWith,
-          target
-        );
+        this.updateFileContent(fileChange as UpdateFileContent, options);
+        return;
       }
+      // case 'remove': {
+      //   const typedFileChange = fileChange as UpdateFileContent;
+      //   shell.rm(
+      //     '-rf',
+      //     target
+      //   );
+      //   console.log(`${fileChange.target} ${colors.green('REMOVED')}.`);
+      //   return;
+      // }
       default: {
         throw new Error(`${fileChange.type} type not supported`);
       }
+    }
+  }
+
+  private updateFileContent(fileChange: UpdateFileContent, options: RunOptions = {}) {
+    const targetWithAbsolutePath = this.toAbsolutePaths(fileChange.target, options.rootDir);
+
+    if (options.skipNoneExistingTargets) {
+      this.assertExisting(targetWithAbsolutePath);
+    }
+
+    shell.sed(
+      '-i',
+      fileChange.match,
+      fileChange.replaceWith,
+      targetWithAbsolutePath
+    );
+
+    fileChange.target.forEach((filePath) => `${filePath} ${colors.green('UPDATED')}.`);
+  }
+
+  private moveFile(fileChange: MoveFile, options: RunOptions = {}) {
+    const typedFileChange = fileChange as MoveFile;
+
+    const targetWithAbsolutePath = this.toAbsolutePath(fileChange.target, options.rootDir);
+
+    if (options.skipNoneExistingTargets) {
+      this.assertExisting(targetWithAbsolutePath);
+    }
+
+    const dest = this.toAbsolutePath(typedFileChange.dest, options.rootDir);
+    shell.mv('-f', targetWithAbsolutePath, dest);
+
+    console.log(`${typedFileChange.target} ${colors.green('MOVED')}.`);
+  }
+
+  private toAbsolutePaths(target: string[], rootDir?: string): string[] {
+    if (!rootDir) {
+      return target;
+    }
+
+    return target.map(filePath => this.toAbsolutePath(filePath, rootDir) as string);
+  }
+
+  private toAbsolutePath(target: string, rootDir?: string): string {
+    if (!rootDir) {
+      return target;
+    }
+
+    return path.join(rootDir, target);
+  }
+
+  private assertExisting(filePath: string | string[]) {
+    if (Array.isArray(filePath)) {
+      filePath.forEach(this.assertExisting);
+    }
+
+    if (!fs.existsSync(filePath as string)) {
+      throw new Error(`${filePath} not founded.`);
     }
   }
 }
