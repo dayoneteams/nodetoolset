@@ -23,7 +23,6 @@ program
   .action(async (dir) => {
     const searchDir = 'node_modules';
     const foundDirs: string[] = _findDirectoriesRecursivelyByName(searchDir, dir);
-    console.log(foundDirs)
 
     if (foundDirs.length === 0) {
       console.log(
