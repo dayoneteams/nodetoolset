@@ -6,6 +6,7 @@ import {FileChange} from './models/FileChange';
 import {MoveFile} from './models/MoveFile';
 import {UpdateFileContent} from './models/UpdateFileContent';
 import {RemoveFile} from './models/RemoveFile';
+import {sleep} from '../utils/async-util';
 
 interface RunOptions {
   rootDir?: string;
@@ -72,7 +73,7 @@ export class FileChangeRunner {
       .forEach(updateContent);
   }
 
-  private moveFile(fileChange: MoveFile, options: RunOptions = {}) {
+  private async moveFile(fileChange: MoveFile, options: RunOptions = {}) {
     const typedFileChange = fileChange as MoveFile;
 
     const targetWithAbsolutePath = this.toAbsolutePath(
@@ -92,6 +93,7 @@ export class FileChangeRunner {
 
     if (typedFileChange.createIntermediateDirs && !fs.existsSync(dest)) {
       shell.mkdir('-p', dest);
+      await sleep(500);
     }
 
     shell.mv('-f', targetWithAbsolutePath, dest);
