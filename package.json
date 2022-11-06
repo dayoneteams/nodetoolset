@@ -1,6 +1,6 @@
 {
   "name": "nodetoolset",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "Set of utility commands for Node.js developers. Built with love from DayOne Teams!",
   "bin": {
     "nts": "./build/index.js"
