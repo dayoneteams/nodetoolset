@@ -1,23 +1,26 @@
 #!/usr/bin/env node
 
-import * as program from 'commander';
+import {createCommand} from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import * as inquirer from 'inquirer';
-import { Answers } from 'inquirer';
+import {ReactNativeHelper} from './packages/react-native/ReactNativeHelper';
+
+const inquirer = require('inquirer');
+
+const program = createCommand();
 
 program.version('0.0.1', '-v, --version');
 
 program
-  .command('node:remove-node_modules <dir>')
+  .command('node:remove-node_modules <dir-path>')
   .description(
-    'Recursively remove all node_modules directories within provided <dir>'
+    'Recursively remove all node_modules directories within provided <dir-path>.'
   )
   // .option(
-  //   '-p, --pickup',
+  //   '--pickup',
   //   'Interactively pickup which directories to remove from a displayed list'
   // )
-  .action(async (dir, cmd) => {
+  .action(async dir => {
     const searchDir = 'node_modules';
     const foundDirs: string[] = _findDirectoriesRecursivelyByName(
       searchDir,
@@ -38,7 +41,7 @@ program
       console.log(`${i + 1}. ${dir}`);
     });
 
-    const answers: Answers = await inquirer.prompt([
+    const answers = await inquirer.prompt([
       {
         type: 'confirm',
         message: 'Are you sure you want to remove all directories above?',
@@ -63,6 +66,36 @@ program
     );
   });
 
+program
+  .command('rn:rename-app <new-app-name>')
+  .description('Rename React Native app name.')
+  .option('--dir [dirPath]', 'Path to React Native project root folder.')
+  .option('--android', 'Only change Android files.')
+  .option('--ios', 'Only change iOS files.')
+  .action(async (newName, {dir = process.cwd(), android, ios}) => {
+    const rnHelper = new ReactNativeHelper();
+    const options = {
+      ios: !android || !!ios,
+      android: !ios || !!android,
+    };
+    await rnHelper.renameProject(dir, newName, options);
+  });
+
+program
+  .command('rn:change-bundle-id <new-bundle-id>')
+  .description('Change React Native app bundle ID.')
+  .option('--dir [dirPath]', 'Path to React Native project root folder.')
+  .option('--android', 'Only change Android files.')
+  .option('--ios', 'Only change iOS files.')
+  .action(async (newBundleId, {dir = process.cwd(), android, ios}) => {
+    const rnHelper = new ReactNativeHelper();
+    const options = {
+      ios: !android || !!ios,
+      android: !ios || !!android,
+    };
+    await rnHelper.changeBundleId(dir, newBundleId, options);
+  });
+
 program.parse(process.argv);
 
 if (!program.args || program.args.length === 0) {
@@ -71,7 +104,7 @@ if (!program.args || program.args.length === 0) {
 
 function _findDirectoriesRecursivelyByName(searchDir: string, inDir: string) {
   const result: string[] = [];
-  const filesAndFolders = fs.readdirSync(inDir, { withFileTypes: true });
+  const filesAndFolders = fs.readdirSync(inDir, {withFileTypes: true});
   filesAndFolders.forEach(item => {
     if (item.isDirectory() && item.name[0] !== '.') {
       const subDirPath = path.join(inDir, item.name);
