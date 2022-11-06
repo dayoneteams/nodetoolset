@@ -3,7 +3,7 @@
 import {createCommand} from 'commander';
 import * as fs from 'fs-extra';
 import * as path from 'path';
-import {ReactNativeHelper} from './packages/react-native/ReactNativeHelper';
+import {ReactNativeService} from './packages/react-native/ReactNativeService';
 
 const inquirer = require('inquirer');
 
@@ -73,7 +73,7 @@ program
   .option('--android', 'Only change Android files.')
   .option('--ios', 'Only change iOS files.')
   .action(async (newName, {dir = process.cwd(), android, ios}) => {
-    const rnHelper = new ReactNativeHelper();
+    const rnHelper = new ReactNativeService();
     const options = {
       ios: !android || !!ios,
       android: !ios || !!android,
@@ -88,7 +88,7 @@ program
   .option('--android', 'Only change Android files.')
   .option('--ios', 'Only change iOS files.')
   .action(async (newBundleId, {dir = process.cwd(), android, ios}) => {
-    const rnHelper = new ReactNativeHelper();
+    const rnHelper = new ReactNativeService();
     const options = {
       ios: !android || !!ios,
       android: !ios || !!android,

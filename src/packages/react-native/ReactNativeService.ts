@@ -1,7 +1,8 @@
 import {ReactNativeProject} from './models/ReactNativeProject';
 import {FileChangeRunner} from '../file-change/FileChangeRunner';
+import {ProjectRenamingService} from './models/ProjectRenamingService';
 
-export class ReactNativeHelper {
+export class ReactNativeService {
   constructor() {}
 
   async renameProject(
@@ -13,7 +14,10 @@ export class ReactNativeHelper {
     }
   ) {
     const prj = await ReactNativeProject.build(projectDirPath);
-    const fileChanges = await prj.toNewName(newName, options);
+    const service = new ProjectRenamingService();
+
+    const fileChanges = await service.renameApp(prj, newName, options);
+
     const fileChangeRunner = new FileChangeRunner();
     await fileChangeRunner.runSeries(fileChanges, {
       rootDir: projectDirPath,
@@ -31,7 +35,10 @@ export class ReactNativeHelper {
     }
   ) {
     const prj = await ReactNativeProject.build(projectDirPath);
-    const fileChanges = await prj.toNewBundleId(newBundleId, options);
+    const service = new ProjectRenamingService();
+
+    const fileChanges = await service.changeBundleId(prj, newBundleId, options);
+
     const fileChangeRunner = new FileChangeRunner();
     await fileChangeRunner.runSeries(fileChanges, {
       rootDir: projectDirPath,
