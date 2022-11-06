@@ -37,11 +37,10 @@ npx nodetoolset node:remove-node_modules ~/my-projects
 ```
 
 ### React Native
+#### npx nodetoolset rn:rename-app
 Rename React Native app.
+##### Examples
 ```
-npx nodetoolset rn:rename-app <new-app-name>
-
-# Examples
 npx nodetoolset rn:rename-app "My New App"
 npx nodetoolset rn:rename-app "My New App" --dir ~/my-projects/my-rn-project --ios
 ```
