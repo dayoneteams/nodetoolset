@@ -1,16 +1,16 @@
 import * as path from 'path';
 import * as fs from 'fs';
 import * as globby from 'globby';
-import { valueFromJsonFile, valueFromXmlFile } from '../../utils/file-util';
+import {valueFromJsonFile, valueFromXmlFile} from '../../utils/file-util';
 import {
   javaPackageToDirPath,
   replaceFirstMatch,
   withoutSpaces,
 } from '../../utils/string-util';
-import { UpdateFileContent } from '../../file-change/models/UpdateFileContent';
-import { MoveFile } from '../../file-change/models/MoveFile';
-import { FileChange } from '../../file-change/models/FileChange';
-import { RemoveFile } from '../../file-change/models/RemoveFile';
+import {UpdateFileContent} from '../../file-change/models/UpdateFileContent';
+import {MoveFile} from '../../file-change/models/MoveFile';
+import {FileChange} from '../../file-change/models/FileChange';
+import {RemoveFile} from '../../file-change/models/RemoveFile';
 
 export class ReactNativeProject {
   rootDir: string;
@@ -33,7 +33,7 @@ export class ReactNativeProject {
 
   async toNewName(
     newDisplayName: string,
-    options: { ios: boolean; android: boolean }
+    options: {ios: boolean; android: boolean}
   ): Promise<FileChange[]> {
     await this.detectAppName();
 
@@ -62,7 +62,7 @@ export class ReactNativeProject {
 
   async toNewBundleId(
     newBundleId: string,
-    options: { ios: boolean; android: boolean }
+    options: {ios: boolean; android: boolean}
   ): Promise<FileChange[]> {
     let androidChanges: FileChange[] = [];
     let iosChanges: FileChange[] = [];
@@ -117,7 +117,7 @@ export class ReactNativeProject {
       `ios/${this.appKey}-Bridging-Header.h`,
     ];
     const firstMoveBatch: MoveFile[] = dirsAndFilesToMoveFirst.map(
-      (filePath) => ({
+      filePath => ({
         type: 'move',
         target: filePath,
         dest: filePath.replace(new RegExp(this.appKey, 'i'), newAppKey),
@@ -131,13 +131,11 @@ export class ReactNativeProject {
       `ios/${this.appKey}Tests/${this.appKey}Tests.m`,
       `ios/${this.appKey}/${this.appKey}.entitlements`,
     ];
-    const secondMoveBatch: MoveFile[] = dirsAndFilesToMoveLast.map(
-      (filePath) => {
-        const target = replaceFirstMatch(filePath, this.appKey, newAppKey);
-        const dest = replaceFirstMatch(target, this.appKey, newAppKey);
-        return { target, dest, type: 'move' };
-      }
-    );
+    const secondMoveBatch: MoveFile[] = dirsAndFilesToMoveLast.map(filePath => {
+      const target = replaceFirstMatch(filePath, this.appKey, newAppKey);
+      const dest = replaceFirstMatch(target, this.appKey, newAppKey);
+      return {target, dest, type: 'move'};
+    });
 
     // Remove iOS build.
     const cleanBuild: RemoveFile = {
@@ -270,7 +268,7 @@ export class ReactNativeProject {
   private androidChangesToNewBundleId(newBundleId: string): FileChange[] {
     const javaFiles = globby
       .sync(path.join(this.rootDir, 'android/app/src/main/java/**/*.java'))
-      .map((absPath) => path.relative(this.rootDir, absPath));
+      .map(absPath => path.relative(this.rootDir, absPath));
     const updateAndroidFiles = [
       {
         type: 'updateContent',
@@ -311,8 +309,8 @@ export class ReactNativeProject {
           onlyFiles: false,
         }
       )
-      .map((absPath) => path.relative(this.rootDir, absPath))
-      .map((relPath) => ({
+      .map(absPath => path.relative(this.rootDir, absPath))
+      .map(relPath => ({
         type: 'move',
         target: relPath,
         dest: newDirOfJavaFiles,

@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { promisify } from 'util';
+import {promisify} from 'util';
 import * as xml2js from 'xml2js';
 import * as shell from 'shelljs';
 
@@ -25,6 +25,8 @@ export const valueFromXmlFile = async (
 };
 
 export const topLevelDirsNamed = (dirName: string, inDir: string): string[] => {
-  const result = shell.exec(`find ${inDir} -name '${dirName}' -type d -prune`, {silent: true});
+  const result = shell.exec(`find ${inDir} -name '${dirName}' -type d -prune`, {
+    silent: true,
+  });
   return result.stdout.split('\n').filter(dirPath => !!dirPath);
 };

@@ -2,10 +2,10 @@ import * as shell from 'shelljs';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as colors from 'colors';
-import { FileChange } from './models/FileChange';
-import { MoveFile } from './models/MoveFile';
-import { UpdateFileContent } from './models/UpdateFileContent';
-import { RemoveFile } from './models/RemoveFile';
+import {FileChange} from './models/FileChange';
+import {MoveFile} from './models/MoveFile';
+import {UpdateFileContent} from './models/UpdateFileContent';
+import {RemoveFile} from './models/RemoveFile';
 
 interface RunOptions {
   rootDir?: string;
@@ -61,7 +61,7 @@ export class FileChangeRunner {
         pathPair.absPath,
         !!options.skipNoneExistingTargets
       );
-    const updateContent = ({ filePath, absPath }: PathPair) => {
+    const updateContent = ({filePath, absPath}: PathPair) => {
       shell.sed('-i', fileChange.match, fileChange.replaceWith, absPath);
       console.log(`${filePath} ${colors.green('UPDATED')}.`);
     };
@@ -109,7 +109,7 @@ export class FileChangeRunner {
         pathPair.absPath,
         !!options.skipNoneExistingTargets
       );
-    const updateContent = ({ filePath, absPath }: PathPair) => {
+    const updateContent = ({filePath, absPath}: PathPair) => {
       shell.rm('-rf', absPath);
       console.log(`${filePath} ${colors.green('REMOVED')}.`);
     };
