@@ -1,7 +1,6 @@
 # [NodeToolSet](https://www.npmjs.com/package/nodetoolset)
 
-NodeToolSet is a set of useful command line utilities that can help Node.js developer
-life easier. Current it includes utility commands for Node.js and React Native. Your contribution are always welcome.
+NodeToolSet is a set of useful command line utilities. Currently, it includes commands for Node.js and React Native. Your contribution are always welcomed!
 
 Built with BIG love from [DayOne](https://dayoneteams.com)!
 
@@ -28,9 +27,8 @@ All examples assume that you are using `npx` but you can also use `nts`.
 
 ### Node.js
 #### `node:remove-node_modules`
-Recursively remove all `node_modules` directories in a certain `directory`
-to free up your disk space.
-##### Example
+Remove all `node_modules` directories to free up your disk space.
+##### Examples
 ```
 npx nodetoolset node:remove-node_modules ~/my-projects
 ```
@@ -55,7 +53,7 @@ npx nodetoolset rn:rename-app "com.myorg.myapp" --dir ~/my-projects/my-rn-projec
 
 ### Misc
 #### `help`
-Detailed command line documentation. 
+Detailed documentation for the tool and each command.
 ##### Examples
 ```
 # Show all commands.
