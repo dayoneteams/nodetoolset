@@ -195,7 +195,7 @@ export class ProjectRenamingService {
     project: ReactNativeProject,
     newBundleId: string
   ): FileChange[] {
-    const javaFiles = globby
+    const javaFilesToUpdate = globby
       .sync(path.join(project.rootDir, 'android/app/src/main/java/**/*.java'))
       .map(absPath => path.relative(project.rootDir, absPath));
     const updateAndroidFiles = [
@@ -219,10 +219,10 @@ export class ProjectRenamingService {
         type: 'updateContent',
         match: `package ${project.androidBundleId}`,
         replaceWith: `package ${newBundleId}`,
-        target: javaFiles,
+        target: javaFilesToUpdate,
       },
     ] as UpdateFileContent[];
-    const newDirOfJavaFiles = path.join(
+    const newDirForJavaFiles = path.join(
       'android/app/src/main/java',
       javaPackageToDirPath(newBundleId)
     );
@@ -236,7 +236,7 @@ export class ProjectRenamingService {
       .map(relPath => ({
         type: 'move',
         target: relPath,
-        dest: newDirOfJavaFiles,
+        dest: newDirForJavaFiles,
         createIntermediateDirs: true,
       }));
     const removeUnusedDir: RemoveFile = {

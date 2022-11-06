@@ -32,7 +32,7 @@ export class FileChangeRunner {
   ): Promise<void> {
     switch (fileChange.type) {
       case 'move': {
-        this.moveFile(fileChange as MoveFile, options);
+        await this.moveFile(fileChange as MoveFile, options);
         return;
       }
       case 'updateContent': {
