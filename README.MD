@@ -27,12 +27,11 @@ nts <command> ...
 All commands below assume that you are using `npx`.
 
 ### Node.js
+#### **npx nodetoolset node:remove-node_modules**
 Recursively remove all `node_modules` directories in a certain `directory`
 to free up your disk space.
+##### Example
 ```
-npx nodetoolset node:remove-node_modules
-
-# Example
 npx nodetoolset node:remove-node_modules ~/my-projects
 ```
 
@@ -46,26 +45,23 @@ npx nodetoolset rn:rename-app "My New App" --dir ~/my-projects/my-rn-project --i
 ```
 Notes: It's recommended to check out Git codebase into new branch, run the command and test carefully.
 
+#### npx nodetoolset rn:change-bundle-id
 Change React Native app bundle ID.
+##### Examples
 ```
-npx nodetoolset rn:change-bundle-id <new-bundle-id>
-
-# Examples
 npx nodetoolset rn:rename-app "com.myorg.myapp"
 npx nodetoolset rn:rename-app "com.myorg.myapp" --dir ~/my-projects/my-rn-project --ios
 ```
 
 ### Misc
-Show all commands.
+#### npx nodetoolset help
+Detailed commandline documentation. 
+##### Examples
 ```
+# Show all commands.
 npx nodetoolset help
-```
 
-View details of a specific command.
-```
-npx nodetoolset help <command>
-
-# Examples
+# View details of a specific command.
 npx nodetoolset help node:remove-node_modules
 npx nodetoolset help rn:rename-app
 ```
