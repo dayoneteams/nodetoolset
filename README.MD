@@ -1,21 +1,37 @@
-Node Toolset is a set of useful command lines that can help nodejs developer
-life easier.
+# [NodeToolSet](https://reactjs.org/)
 
-Built with BIG love from DayOne Teams!
+NodeToolSet is a set of useful command line utilities that can help Node.js developer
+life easier. Current it includes utility commands for Node.js and React Native. Your contribution are always welcome.
 
-### Installation
-`[sudo] npm install -g nodetoolset`
+Built with BIG love from [DayOne](https://dayoneteams.com)!
 
-### Usage
+## Installation
+Notes: Skip if you want use `npx`.
+
+```
+[sudo] npm install -g nodetoolset
+```
+
+## Usage
+You can use the commands directly using `npx`.
+```
+npx nodetoolset <command> ...
+```
+If you installed the tool using `npm install -g`. You can use.
+```
+nts <command> ...
+```
+
+## Commands
 Recursively remove all `node_modules` directories in a certain `directory`
 to free up your disk space.
 ```
-[npx] nts node:remove-node_modules <dir>
+nts node:remove-node_modules <dir>
 ```
 
 Rename React Native app.
 ```
-[npx] nts rn:rename-app <new-app-name>
+nts rn:rename-app <new-app-name>
 ```
 Notes: It's recommended to check out Git codebase into new branch, run the command and test carefully. 
 
