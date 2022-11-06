@@ -55,7 +55,7 @@ npx nodetoolset rn:rename-app "com.myorg.myapp" --dir ~/my-projects/my-rn-projec
 
 ### Misc
 #### `help`
-Detailed commandline documentation. 
+Detailed command line documentation. 
 ##### Examples
 ```
 # Show all commands.
