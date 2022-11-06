@@ -1,4 +1,4 @@
-# [NodeToolSet](https://reactjs.org/)
+# [NodeToolSet](https://www.npmjs.com/package/nodetoolset)
 
 NodeToolSet is a set of useful command line utilities that can help Node.js developer
 life easier. Current it includes utility commands for Node.js and React Native. Your contribution are always welcome.
