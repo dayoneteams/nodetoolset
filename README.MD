@@ -47,8 +47,8 @@ Notes: It's recommended to check out Git codebase into new branch, run the comma
 Change React Native app bundle ID.
 ##### Examples
 ```
-npx nodetoolset rn:rename-app "com.myorg.myapp"
-npx nodetoolset rn:rename-app "com.myorg.myapp" --dir ~/my-projects/my-rn-project --ios
+npx nodetoolset rn:change-bundle-id "com.myorg.myapp"
+npx nodetoolset rn:change-bundle-id "com.myorg.myapp" --dir ~/my-projects/my-rn-project --ios
 ```
 
 ### Misc
